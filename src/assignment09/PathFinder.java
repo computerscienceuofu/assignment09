@@ -162,7 +162,7 @@ public class PathFinder {
 		}
 			
 			//Here is where I'm trying to check if all the Nodes in the Queue have been visited,
-			//If so, then it will return false. Not currently working though.  
+			//If so, then it will return false because there is no path.   Not currently working though.  
 			x.visited = 1;
 			int counter = 0;
 			for(Node temp: q)
