@@ -1,5 +1,6 @@
 package assignment09;
 
+import java.util.List;
 
 public class Node {
 	
@@ -8,6 +9,7 @@ public class Node {
 	public int visited;
 	public int row;
 	public int column;
+	List<Node> Neighbors;
 
 	public Node(String data) 
 	{
