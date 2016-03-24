@@ -1,235 +1,223 @@
 package assignment09;
-import java.io.BufferedWriter;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Scanner;
 
 
+/**
+ * PathFinder algorithm to find the shortest path in a maze.  Uses Breadth First Search.
+ * @author Li Yu and Christopher Murphy
+ */
 public class PathFinder {
-	
-	//I've started this without using a specific graph class.  I think we will need to incorporate one somehow.
-	// Not sure how to yet though.  
-	public static void solveMaze(String inputFile, String outputFile) 
-	{	
-		//Gets the dimensions to assign to the 2d String array size
-		String[][] Dimensions = getDimensions(inputFile);
+	/**
+	 * solveMaze Starts the algorithm for finding the quickest path to a maze file.  
+	 * @param inputFile - This is the maze file to be checked
+	 * @param outputFile - This is the outputFile it saves the maze and path to
+	 */
+	public static void solveMaze(String inputFile, String outputFile){
+		Graph maze = null;
 		
-		//Gets each row and column character of the maze file and adds it the 2d String array
-		String[][] Map = getMap(inputFile, Dimensions);
+		//Makes a new graph of the inputfile using a 2d array of nodes
+		maze = new Graph(inputFile);
 		
-		int startRow = 0;
-		int startColumn = 0;		
+		//Finds the start and end Nodes
+		Node start = maze.getStart();
+		Node end = maze.getEnd();
 		
+		//This runs the breadth first search algorithm with the start and end nodes.
+		BFS(start, end);
+		Node temp = end;
 		
-		//This finds the Starting values, startRow and startColumn
-		for(int i = 0; i < Map.length; i++)
-		{
-			for(int j = 0; j < Map[0].length; j++)
-			{
-				String check = Map[i][j];
-				if (check.compareTo("S") == 0)
-				{
-					startRow = i;
-					startColumn = j;
-				}
-			}
-		}
-
-		//This sends the startRow, startColumn, 2d String array named Map (which contains all the coordinates), 
-		//and the output and input file names to getPath.  
-		System.out.println(getPath(startRow, startColumn, Map, outputFile, inputFile));		
-	}	
-	
-	
-	private static boolean getPath(int startRow, int startColumn, String[][] Map, String outputFile, String inputFile) {
-		//Creates a Queue from java's LinkedList, which is assigned to the Node class
-		Queue<Node> q = new LinkedList<Node>();				
+		//Here it prints out the path using reDraw
+		while(temp.cameFrom != start && end.cameFrom != null){
+			temp = temp.cameFrom;
+			maze.reDraw(temp.x ,temp.y);
+		}		
 		
-		//Sets the Start Node Row and Column values.
-		Node Start = new Node(startRow + " " + startColumn);
-		Start.column = startColumn;
-		Start.row = startRow;
+		PrintWriter output = null;
 		
-		//This is the up, left, right, and down coordinates for searching neighboring items.
-		int[]dx = {0, 0, -1, 1};
-		int[]dy = {-1, 1, 0, 0};
-		
-
-		//Adds the Start Node to the Queue.
-		q.add(Start);
-		while(q.size() > 0)
-		{
-			//This takes the first item in the Queue for comparing and looking at its neighbors.
-			Node x = q.poll();
-			
-			if(x.visited != 1)
-			{
-				
-			//If the current node is the Goal, then it retraces it's steps (cameFrom) and prints out the path onto the 2d array named Map.
-			if (Map[x.row][x.column].compareTo("G") == 0)
-					{
-					while (x.cameFrom != null)
-					{
-						if (Map[x.row][x.column].compareTo("G") != 0)
-						{
-						Map[x.row][x.column] = ".";
-						}
-						x = x.cameFrom;
-					}					
-					try {
-						//Here is where it writes the solution and maze to a text file.
-						File file = new File(outputFile);
-
-						if (!file.exists()) {
-							file.createNewFile();
-						}
-
-						FileWriter fw = new FileWriter(file.getAbsoluteFile());
-						BufferedWriter bw = new BufferedWriter(fw);
-						
-						File text = new File(inputFile);
-						Scanner rowColumn;
-						try {
-							rowColumn = new Scanner(text);
-							String row = rowColumn.next();
-							String row2 = rowColumn.next();
-							bw.write(row + " " + row2 + "\n");								
-						} catch (FileNotFoundException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}												
-						
-						for(int i = 0; i < Map.length; i++)
-						{
-							for(int j = 0; j < Map[0].length; j++)
-							{
-								bw.write(Map[i][j]);							
-							}
-							bw.write("\n");
-						}						
-						bw.close();
-
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					
-					return true;
-					}
-			
-			//This checks the up, left, right, and down values of the current Node.
-			for(int i = 0; i < 4; i++)
-			{
-				int yy = x.row + dx[i];
-				int xx = x.column + dy[i];
-			
-				if(xx >= 1 && yy >= 1)
-				{
-				
-					if(Map[yy][xx].compareTo(" ") == 0 && Map[yy][xx].compareTo("X") != 0 && (x.visited != 1) || Map[yy][xx].compareTo("G") == 0)
-					{
-						boolean on = true;
-						
-						//This checks the Queue and makes sure the current item isn't in there.  
-						//If it is, then it turns off the switch. 
-						for(Node I: q)
-						{
-						if (I.column == xx && I.row == yy)
-						{
-						on = false;
-						}
-						
-						}
-						if (on == true)
-						{
-							
-						//If a node hasn't been looked at yet, it creates a node for it and adds it to the Queue.  
-						Node Neighbor = new Node(yy + " " + xx);
-						Neighbor.column = xx;
-						Neighbor.row = yy;
-						Neighbor.cameFrom = x;
-						q.add(Neighbor);
-						}
-						//Turns the switch back on after the ForEach loop
-						on = true;					
-					}
-				}
-				
-			}
-		}
-			
-			//Here is where I'm trying to check if all the Nodes in the Queue have been visited,
-			//If so, then it will return false because there is no path.   Not currently working though.  
-			x.visited = 1;
-			int counter = 0;
-			for(Node temp: q)
-			{
-				if (temp.visited == 1)
-					{
-					counter++;										
-					}
-				if (q.size() == counter)
-					{
-					return false;
-					}
-			}
-	}		
-		return false;
-	}
-
-
-	private static String[][] getMap(String inputFile, String[][] Map) {
-		
-		//Gets Dimensions of the File and makes a String array named dimensions
-		File text = new File(inputFile);	
-		int j = 0;
-
+		//This starts a PrintWriter to save the map to a separate file
 		try {
-			Scanner s = new Scanner(text);
-			String nex = s.nextLine();
-			
-			while(s.hasNextLine())
-			{
-			nex = s.nextLine();
-			for (int i = 0; i < nex.length(); i++)
-			{
-				char c = nex.charAt(i);
-				String d = Character.toString(c);
-				Map[j][i] = d;	
-			}
-			j++;
-			}	
-			s.close();
+			output = new PrintWriter(outputFile);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
-		return Map;
-}
-
-
-	public static String[][]  getDimensions(String inputFile)
-	{
-		//Gets Dimensions of the File and makes a String array named dimensions
-				File text = new File(inputFile);
-				Scanner rowColumn;
-				String[][] dimensions = null;
-				try {
-					rowColumn = new Scanner(text);
-					String row = rowColumn.next();
-					String column = rowColumn.next();
-					Integer row2 = Integer.parseInt(row);
-					Integer column2 = Integer.parseInt(column);		
-					dimensions = new String[row2][column2];
-					rowColumn.close();
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+		}
+		//This prints the maze dimensions
+		output.println(maze.height + " " + maze.width);
+		
+		//This prints the rest of the maze
+		for(int i=0; i < maze.height; i++){
+			for(int t=0; t < maze.width; t++){
+				if(maze.graph[i][t] == null){
+					output.print('X');
+				}else{
+					output.print(maze.graph[i][t].data);
 				}
-				return dimensions;
+			}
+			output.println();
+		}
+		output.close();
 	}
 
+	/**
+	 * This runs the Breadth First Search algorithm using a Queue.
+	 * @param start - Starting Node 'S'
+	 * @param end - End Node 'G'
+	 */
+	private static void BFS(Node start, Node end){
+		//creates a queue for the breadth first algorithm
+		Queue<Node> queue = new LinkedList<Node>();
+		queue.add(start);
+		while(!queue.isEmpty()){
+			Node current = queue.poll();
+			if(current.equals(end)){
+				return;
+			}
+			//this runs the the current neighbors and adds them if they're unvisited 
+			//and marks them visited.  Also records where it camefrom to retrace.  
+			for(Node next : current.neighbors){
+				if(!next.visited){
+					next.visited = true;
+					next.cameFrom = current;
+					queue.add(next);
+				}
+			}
+		}
+	}
+
+	/**
+	 * This sets up the Graph class 
+	 * for all the nodes in a 2d array and connects them to their neighbors.
+	 */
+	private static class Graph{
+		//makes a 2d array of Nodes, height and width, and start and end nodes.
+		private Node[][] graph;
+		private int height;
+		private int width;
+		private Node start;
+		private Node end;
+	
+		//prints out the path character
+		public void reDraw(int x, int y){
+			graph[x][y].data = '.';
+		}
+	
+		public Graph(String fileName){
+			File file = new File(fileName);
+			BufferedReader input = null;
+			try {
+				input = new BufferedReader(new FileReader(file));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			String[] dimensions = null;
+			try {
+				dimensions = input.readLine().split(" ");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			height = Integer.parseInt(dimensions[0]);
+			width = Integer.parseInt(dimensions[1]);
+			graph = new Node[height][width];
+			Scanner scan = null;
+			try {
+				scan = new Scanner(file);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			//garbage to disregard the first line
+			String garbage = scan.nextLine();
+			int line = -1;
+			while(scan.hasNextLine()){
+				String temp = scan.nextLine();
+				line++;
+				for(int index = 0; index < this.width; index++){
+					if(temp.charAt(index) == 'X'){
+						graph[line][index] = null;
+					}else{
+						graph[line][index] = new Node(temp.charAt(index), null, line, index);
+					}
+				}
+			}
+			//adds the neighbors to the graph if its not null and checks for start and end values
+			for(int x = 1; x < this.height - 1; x++){
+				for(int y = 1; y < this.width - 1; y++){
+					if(graph[x][y] != null){
+						List<Node> neighbors = new ArrayList<Node>();
+						if(graph[x+1][y] != null){
+							neighbors.add(graph[x+1][y]);
+						}
+						if(graph[x-1][y] != null){
+							neighbors.add(graph[x-1][y]);
+						}
+						if(graph[x][y+1] != null){
+							neighbors.add(graph[x][y+1]);
+						}
+						if(graph[x][y-1] != null){
+							neighbors.add(graph[x][y-1]);
+						}
+						graph[x][y].neighbors = neighbors;
+						if(graph[x][y].data == 'S'){
+							start = graph[x][y];
+						}
+						if(graph[x][y].data == 'G'){
+							end = graph[x][y];
+						}	
+					}
+					
+				}
+			}
+			scan.close();
+			try {
+				input.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		public Node getStart(){
+			return this.start;
+		}
+		
+		public Node getEnd(){
+			return this.end;
+		}
+	}
+	
+	/**
+	 * This sets up the Node class for saving data to each Node.
+	 */
+	private static class Node{
+		//data for each node and a list of neighbors
+		Character data;
+		Node cameFrom;
+		int x;
+		int y;
+		List<Node> neighbors;
+		boolean visited;
+	
+		public Node(Character data, List<Node> neighbors, int x, int y){
+			this.data = data;
+			this.neighbors = neighbors;
+			this.x = x;
+			this.y = y;
+			this.cameFrom = null;
+			this.visited = false;
+		}
+	}
 }
