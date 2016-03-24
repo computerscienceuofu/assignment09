@@ -15,6 +15,17 @@ public class PathFinderfirstdraft {
 	// Not sure how to yet though.  
 	public static void solveMaze(String inputFile, String outputFile) 
 	{	
+		
+		if(new File(inputFile).isFile() == false)
+		{
+			try {
+				throw new FileNotFoundException();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		//Gets the dimensions to assign to the 2d String array size
 		String[][] Dimensions = getDimensions(inputFile);
 		

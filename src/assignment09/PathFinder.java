@@ -18,12 +18,26 @@ import java.util.Scanner;
  * @author Li Yu and Christopher Murphy
  */
 public class PathFinder {
+	
+	
 	/**
 	 * solveMaze Starts the algorithm for finding the quickest path to a maze file.  
 	 * @param inputFile - This is the maze file to be checked
 	 * @param outputFile - This is the outputFile it saves the maze and path to
 	 */
 	public static void solveMaze(String inputFile, String outputFile){
+		
+		if(new File(inputFile).isFile() == false)
+		{
+			try {
+				throw new FileNotFoundException();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
 		Graph maze = null;
 		
 		//Makes a new graph of the inputfile using a 2d array of nodes

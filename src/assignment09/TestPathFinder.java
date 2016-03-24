@@ -1,10 +1,8 @@
 package assignment09;
 
-import java.io.IOException;
-
 public class TestPathFinder {
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args){
 		
 		/*
 		 * The below code assumes you have a file "tinyMaze.txt" in your project folder.
